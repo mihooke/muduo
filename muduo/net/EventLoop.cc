@@ -126,7 +126,10 @@ void EventLoop::loop()
     }
     currentActiveChannel_ = NULL;
     eventHandling_ = false;
-    doPendingFunctors();
+    doPendingFunctors();;/// 由于poll中没有可读的fd，进程就会休眠，所以wakeupfd的作用就是唤醒进程来执行
+						 /// pending functors，如果用户调用了runInLoop()，就意味着要添加其他回调函数，如果不是在当前线程或者
+						 /// 有明确的调用此回调函数，则会利用wakeupfd来唤醒进程，进而执行回调函数；
+						 /// 如果直接在当前线程添加了回调函数，则不用唤醒，遍历完channel，直接会调用回调函数
   }
 
   LOG_TRACE << "EventLoop " << this << " stop looping";
